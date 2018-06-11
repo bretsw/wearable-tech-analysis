@@ -1,4 +1,4 @@
-# wearable_tech_analysis
+# Wearable Technology Analysis  
 *Completed final project for Coursera course in data science: "Getting and Cleaning Data"*  
 https://www.coursera.org/learn/data-cleaning/peer/FIZtT/getting-and-cleaning-data-course-project
 
