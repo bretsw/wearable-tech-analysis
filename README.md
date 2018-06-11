@@ -18,9 +18,7 @@ One of the most exciting areas in all of data science right now is wearable comp
 5. From the dataset in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
 **To run the script:**  
-For my R script to import the data properly, make sure you have saved the script "run_analysis.R" is in the same directory as the eight data files: 1) activity_labels.txt, 2) features.txt, 3) X_train.txt, 4) y_train.txt, 5) subject_train.txt, 6) X_test.txt, 7) y_test.txt, and 8) subject_test.txt. 
-
-Please note that when you download and unzip the source datafile, some of these files will be nested in subdirectories "/train" and "/test". For the sake of sharing everything on Github, I have put all files in the same directory.
+For my R script to import the data properly, make sure you have saved the script "run_analysis.R" is in the same directory as the data files: 1) 'activity_labels.txt' and 2) 'features.txt', along with subdirectories for 6 additional files: 3) 'train/X_train.txt', 4) 'train/y_train.txt', 5) 'train/subject_train.txt', 6) 'test/X_test.txt', 7) 'test/y_test.txt', and 8) 'test/subject_test.txt'. 
 
 Once all files are in the same directory, open "run_analysis.R" (I recommend in RStudio) and click the 'Run' button at the top right of the script window.
 

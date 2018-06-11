@@ -57,14 +57,14 @@ activity_raw <- read.table("activity_labels.txt", sep = "")  # Links the class l
         activity_labels[,1] <- NULL
         activity_labels <- as.vector(unlist(activity_labels))
 
-train <- read.table("X_train.txt", sep = "")  # Training set. dim 7352 x 561
-train_labels <- as.vector(unlist(read.table("Y_train.txt", sep = "")))  # Training labels. dim 7352 x 1
-subject_train <- read.table("subject_train.txt", sep = "")  # Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
+train <- read.table("train/X_train.txt", sep = "")  # Training set. dim 7352 x 561
+train_labels <- as.vector(unlist(read.table("train/Y_train.txt", sep = "")))  # Training labels. dim 7352 x 1
+subject_train <- read.table("train/subject_train.txt", sep = "")  # Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
         subject_train <- as.vector(unlist(subject_train))  # length = 7352
 
-test <- read.table("X_test.txt", sep = "")  # Test set. dim 2947 x 561
-test_labels <- as.vector(unlist(read.table("Y_test.txt", sep = "")))  # Test labels. dim 2947 x 1
-subject_test <- read.table("subject_test.txt", sep = "")  # Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
+test <- read.table("test/X_test.txt", sep = "")  # Test set. dim 2947 x 561
+test_labels <- as.vector(unlist(read.table("test/Y_test.txt", sep = "")))  # Test labels. dim 2947 x 1
+subject_test <- read.table("test/subject_test.txt", sep = "")  # Each row identifies the subject who performed the activity for each window sample. Its range is from 1 to 30.
         subject_test <- as.vector(unlist(subject_test))  # length = 2947
 
 
@@ -79,11 +79,38 @@ dim(full_tidy_df)  # dim 10299 x 561
 
 
 ## --------------------------------------------------------------
+## 2. Extract only the measurements on the mean and standard deviation for each measurement.
+## --------------------------------------------------------------
+
+means_sd_df <- (colnames(full_tidy_df) <- tolower(features)) %>%   # attaches the feature names as column (variable) names
+        grep("([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])", .) %>%  # searches for all forms of 'mean' and 'std'
+        full_tidy_df[, .]  # filters dataframe for those columns with 'mean' or 'std' in name
+#dim(means_sd_df)  # 10299 x 86
+#colnames(means_sd_df)
+
+
+
+## --------------------------------------------------------------
+## 3. Use descriptive activity names to name the activities in the data set
+## --------------------------------------------------------------
+
+activity <- c(train_labels, test_labels)  # length 10299
+means_sd_df <- cbind(activity, means_sd_df)  # adds activity code (i.e., activity number 1-6 as first column)
+
+activity_codebook <- t(data.frame(1:6))
+colnames(activity_codebook) <- activity_labels  # n=6
+
+means_sd_df$activity <- colnames(activity_codebook)[match(
+                                means_sd_df$activity, activity_codebook
+                                )]
+#dim(means_sd_df)  # 10299 x 87
+
+
+## --------------------------------------------------------------
 ## 4. Appropriately label the data set with descriptive variable names.
 ## --------------------------------------------------------------
 
-colnames(full_tidy_df) <- tolower(features)
-colnames(full_tidy_df) <- tolower(features) %>%
+colnames(means_sd_df)[2:(length(colnames(means_sd_df)))] <- colnames(means_sd_df)[2:(length(colnames(means_sd_df)))] %>%
         gsub("^t", "time\\.", .) %>%
         gsub("^f", "freq\\.", .) %>%
         gsub("-", ".", .) %>%
@@ -92,43 +119,11 @@ colnames(full_tidy_df) <- tolower(features) %>%
         gsub("\\)", ".", .) %>%
         gsub("\\.\\.\\.", ".", .) %>%
         gsub("\\.\\.", ".", .) %>%
-        gsub("\\.$", "", .) %>%
-        paste(index(features), .,  sep=".")
+        gsub("\\.$", "", .)
 
-activity <- c(train_labels, test_labels)  # length 10299
-full_tidy_df <- cbind(activity, full_tidy_df)  # adds activity code (i.e., subject number 1-6 as first column)
-
-subject <- c(subject_train, subject_test)  # length 10299
-full_tidy_df <- cbind(subject, full_tidy_df)  # adds subject code (i.e., subject number 1-30 as first column)
-
-
-
-## --------------------------------------------------------------
-## 3. Use descriptive activity names to name the activities in the data set
-## --------------------------------------------------------------
-
-activity_codebook <- t(data.frame(1:6))
-colnames(activity_codebook) <- activity_labels  # n=6
-
-full_tidy_df$activity <- colnames(activity_codebook)[match(
-        full_tidy_df$activity, activity_codebook
-        )]
-dim(full_tidy_df)
-
-
-
-## --------------------------------------------------------------
-## 2. Extract only the measurements on the mean and standard deviation for each measurement.
-## --------------------------------------------------------------
-
-means_sd_df <- colnames(full_tidy_df) %>%
-        grep("([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])", .) %>%
-        c(1, 2, .) %>%
-        full_tidy_df[, .]
-
-dim(means_sd_df)  # 10299 x 88
-names(means_sd_df)
-
+#colnames(means_sd_df)
+#length(colnames(means_sd_df))  # length = 87
+#length(unique(colnames(means_sd_df)))  # length = 87
 
 
 ## --------------------------------------------------------------
@@ -136,9 +131,14 @@ names(means_sd_df)
 ##    with the average of each variable for each activity and each subject.
 ## --------------------------------------------------------------
 
-means_by_subject_activity <- full_tidy_df %>%
+subject <- c(subject_train, subject_test)  # length 10299
+means_sd_df <- cbind(subject, means_sd_df)  # adds subject code (i.e., subject number 1-30 as first column)
+#dim(means_sd_df)  # 10299 x 88
+
+means_by_subject_activity <- means_sd_df %>%
         dplyr::group_by(subject, activity) %>%  # n=30 subjects, n=6 activities
         summarize_all(mean)
-means_by_subject_activity
+#dim(means_by_subject_activity)  # 180 x 88
 
 write.table(means_by_subject_activity, "means_by_subject_activity.csv", row.name=FALSE)
+
