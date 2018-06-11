@@ -83,9 +83,9 @@ dim(full_tidy_df)  # dim 10299 x 561
 ## --------------------------------------------------------------
 
 means_sd_df <- (colnames(full_tidy_df) <- tolower(features)) %>%   # attaches the feature names as column (variable) names
-        grep("([Mm][Ee][Aa][Nn])|([Ss][Tt][Dd])", .) %>%  # searches for all forms of 'mean' and 'std'
+        grep("(mean\\(\\))|(std\\(\\))", .) %>%  # searches for all forms of 'mean' and 'std'
         full_tidy_df[, .]  # filters dataframe for those columns with 'mean' or 'std' in name
-#dim(means_sd_df)  # 10299 x 86
+#dim(means_sd_df)  # 10299 x 66
 #colnames(means_sd_df)
 
 
@@ -103,7 +103,7 @@ colnames(activity_codebook) <- activity_labels  # n=6
 means_sd_df$activity <- colnames(activity_codebook)[match(
                                 means_sd_df$activity, activity_codebook
                                 )]
-#dim(means_sd_df)  # 10299 x 87
+#dim(means_sd_df)  # 10299 x 67
 
 
 ## --------------------------------------------------------------
@@ -112,7 +112,11 @@ means_sd_df$activity <- colnames(activity_codebook)[match(
 
 colnames(means_sd_df)[2:(length(colnames(means_sd_df)))] <- colnames(means_sd_df)[2:(length(colnames(means_sd_df)))] %>%
         gsub("^t", "time\\.", .) %>%
-        gsub("^f", "freq\\.", .) %>%
+        gsub("^f", "freqeuncy\\.", .) %>%
+        gsub("bodybody", "body", .) %>%
+        gsub("acc", "accelerometer", .) %>%
+        gsub("gyro", "gyroscope", .) %>%
+        gsub("mag", "magnitude", .) %>%
         gsub("-", ".", .) %>%
         gsub(",", ".", .) %>%
         gsub("\\(", ".", .) %>%
@@ -122,8 +126,8 @@ colnames(means_sd_df)[2:(length(colnames(means_sd_df)))] <- colnames(means_sd_df
         gsub("\\.$", "", .)
 
 #colnames(means_sd_df)
-#length(colnames(means_sd_df))  # length = 87
-#length(unique(colnames(means_sd_df)))  # length = 87
+#length(colnames(means_sd_df))  # length = 67
+#length(unique(colnames(means_sd_df)))  # length = 67
 
 
 ## --------------------------------------------------------------
@@ -138,7 +142,7 @@ means_sd_df <- cbind(subject, means_sd_df)  # adds subject code (i.e., subject n
 means_by_subject_activity <- means_sd_df %>%
         dplyr::group_by(subject, activity) %>%  # n=30 subjects, n=6 activities
         summarize_all(mean)
-#dim(means_by_subject_activity)  # 180 x 88
+#dim(means_by_subject_activity)  # 180 x 68
 
 write.table(means_by_subject_activity, "means_by_subject_activity.csv", row.name=FALSE)
 
